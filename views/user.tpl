@@ -169,7 +169,7 @@ var app = new Vue({
 			currentPage:1,
 			pageSize:10,
 			totalSize:<%.totalSize%>,
-			search_username:''
+			search_username:<%.search_username%>
 		},
 		formVisible:false,
 		dialogVisible:false,
@@ -386,7 +386,11 @@ var app = new Vue({
 		    	this.page.currentPage = 1;
 		    	this.page.pageSize = 10;
 		    	this.$http.post('',this.page).then(response=>{
-	    			this.tableData = response.body;
+				if(response.body.Code==1){
+					this.tableData = response.body.Data;
+				}else{
+					this.$message.error('get failure');
+				}
 		    	});
 	    },
 		handleUploadSuccess(){

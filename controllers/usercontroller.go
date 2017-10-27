@@ -37,13 +37,40 @@ func (this *UserController) ToView() {
 
 	}
 	this.Data["tableData"] = users
-	beego.Informational(count)
 	this.Data["totalSize"] = count
 	this.Data["menu_index"] = "1-1"
 	this.Data["depart"] = depart
 	this.Data["role"] = role
 	this.Data["res"] = res
+	this.Data["search_username"] = username
 	this.TplName = "user.tpl"
+}
+
+func (this *UserController) Post() {
+	rpcService := new(services.RpcService)
+	currentUser := this.GetSession("user").(models.User)
+	//	ok, err2 := rpcService.HasRes(currentUser.Id, "user:detail")
+	//	if err2 != nil || !ok {
+
+	//		this.TplName = "login.tpl"
+	//		return
+	//	}
+	username := this.GetString("search_username")
+	user := models.User{UserName: username}
+	page, _ := this.GetInt("currentPage")
+	pageSize, _ := this.GetInt("pageSize")
+	result := new(models.BaseResponse)
+	users, err := this.service.ListUser(page, pageSize, user, currentUser, rpcService)
+	if err != nil {
+		beego.Error(err)
+		result.Msg = err.Error()
+	} else {
+		result.Code = 1
+		result.Data = users
+	}
+	this.Data["json"] = result
+	this.ServeJSON()
+
 }
 
 func (this *UserController) Login() {
@@ -60,6 +87,7 @@ func (this *UserController) Login() {
 		if pwd == user.Pwd {
 			this.SetSession("user", user)
 			result.Code = 1
+			result.Data = user
 		} else {
 			result.Msg = "password error"
 		}

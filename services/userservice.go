@@ -25,6 +25,7 @@ func (this *UserService) ListUser(page int, length int, user models.User, curren
 		qs = qs.Filter("user_name", user.UserName)
 	}
 	child, err := this.GetChildByUser(currentUser.Id, rpcService)
+	beego.Informational(child)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +345,11 @@ func (this *UserService) AllotRes(userId int, resId []int, currentUser models.Us
 
 func (this *UserService) Count(user models.User) (int, error) {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("user").Filter("user_name", user.UserName).Count()
+	qs := o.QueryTable("user")
+	if len(user.UserName) > 0 {
+		qs = qs.Filter("user_name", user.UserName)
+	}
+	count, err := qs.Count()
 	if err != nil {
 		beego.Error(err)
 		return 0, err
@@ -363,8 +368,8 @@ func (this *UserService) GetByUsername(username string) (user models.User, err e
 }
 
 func (this *UserService) GetChildByUser(userId int, rpcService *RpcService) (users []int, err error) {
-	if bm.IsExist("GetChildByUser" + strconv.Itoa(userId)) {
-		return bm.Get("GetChildByUser" + strconv.Itoa(userId)).([]int), nil
+	if bm.IsExist("GetChildByUser_" + strconv.Itoa(userId)) {
+		return bm.Get("GetChildByUser_" + strconv.Itoa(userId)).([]int), nil
 	}
 	o := orm.NewOrm()
 	depart := make([]*models.Depart, 0, 10)
@@ -410,7 +415,7 @@ func (this *UserService) GetChildByUser(userId int, rpcService *RpcService) (use
 	}
 
 	var noDepartUser []*models.User
-	_, err = o.Raw("select * from user t left join user_depart t2 on t.id=t2.user_id where t2.id is null").QueryRows(&noDepartUser)
+	_, err = o.Raw("select t.* from user t left join user_depart t2 on t.id=t2.user_id where t2.id is null").QueryRows(&noDepartUser)
 	if err != nil {
 		beego.Error(err)
 		return nil, err
@@ -423,7 +428,7 @@ func (this *UserService) GetChildByUser(userId int, rpcService *RpcService) (use
 	for _, item := range noDepartUser {
 		users = append(users, item.Id)
 	}
-	bm.Put("GetChildByUser"+strconv.Itoa(userId), users, 3600*24*7*time.Second)
+	bm.Put("GetChildByUser_"+strconv.Itoa(userId), users, 3600*24*7*time.Second)
 	return users, nil
 }
 
