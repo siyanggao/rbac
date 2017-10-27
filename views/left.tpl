@@ -1,10 +1,11 @@
-<el-menu class="el-menu-vertical-demo"  theme="dark">
+<el-menu default-active=<%.menu_index%> class="el-menu-vertical-demo"  theme="dark">
   <el-submenu index="1">
     <template slot="title">导航一</template>
-    <a href="/webSentence/sentence"><el-menu-item index="1-1">sentence</el-menu-item></a>
-    <a href="/webWord/word"><el-menu-item index="1-2">word</el-menu-item></a>
-    <a href="/webArticle/article"><el-menu-item index="1-3">article</el-menu-item></a>
-    <a href="/webMessage/message"><el-menu-item index="1-4">message</el-menu-item></a>
+	<a href="/user/toview"><el-menu-item index="1-1">user</el-menu-item></a>
+    <a href="/depart/toview"><el-menu-item index="1-2">depart</el-menu-item></a>
+    <a href="/role/toview"><el-menu-item index="1-3">role</el-menu-item></a>
+    <a href="/resource/toview"><el-menu-item index="1-4">resource</el-menu-item></a>
+    
     
     <el-submenu index="1-4">
       <template slot="title">选项4</template>

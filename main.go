@@ -13,4 +13,5 @@ func main() {
 	orm.Debug = true
 	models.RegisterDB()
 	beego.Run()
+
 }

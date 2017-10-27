@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <title>Test</title>
-<link href="/static/css/elementui.css" rel="stylesheet">
+<link href="https://cdn.bootcss.com/element-ui/2.0.0-alpha.2/theme-chalk/index.css" rel="stylesheet">
 <link href="/static/css/style.css" rel="stylesheet">
 <script src="/static/js/vue.js"></script>
 <script src="/static/js/vue-resource@1.3.4.js"></script>
-<script src="/static/js/element-ui@2.0.0.js"></script>
+<script src="https://cdn.bootcss.com/element-ui/2.0.0-alpha.2/index.js"></script>
+<script>
+	Vue.http.options.emulateJSON = true;
+	Vue.http.options.headers = {
+	  'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+	};
+</script>
 </head>
 <body>
 <div id="app">
