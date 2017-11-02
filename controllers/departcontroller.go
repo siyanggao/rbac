@@ -13,6 +13,20 @@ type DepartController struct {
 	baseController
 }
 
+func (this *DepartController) GetDepartByRole() {
+	roleId, _ := this.GetInt("roleId")
+	depart, err := this.service.GetDepartByRole(roleId)
+	result := new(models.BaseResponse)
+	if err != nil {
+		result.Msg = err.Error()
+	} else {
+		result.Code = 1
+		result.Data = depart
+	}
+	this.Data["json"] = result
+	this.ServeJSON()
+}
+
 func (this *DepartController) ToView() {
 	rpcService := new(services.RpcService)
 	user := this.GetSession("user").(models.User)
@@ -48,7 +62,7 @@ func (this *DepartController) Add() {
 	var depart *models.Depart = new(models.Depart)
 	depart.Name = this.GetString("name")
 	depart.Pid, _ = this.GetInt("pid")
-	id, err := this.service.Add(depart, currentUser, rpcService)
+	id, err := this.service.Add(depart, currentUser)
 	if err != nil {
 		beego.Error(err)
 		result.Msg = err.Error()
@@ -76,7 +90,7 @@ func (this *DepartController) Edit() {
 	depart := new(models.Depart)
 	depart.Id, _ = this.GetInt("id")
 	depart.Name = this.GetString("name")
-	err := this.service.Edit(depart, currentUser, rpcService)
+	err := this.service.Edit(depart, currentUser)
 	if err != nil {
 		result.Msg = err.Error()
 	} else {

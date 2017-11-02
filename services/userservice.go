@@ -4,8 +4,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"os"
 	"rbac/models"
+	"rbac/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -14,6 +17,25 @@ import (
 
 type UserService struct {
 	baseService
+}
+
+func (this *UserService) GetUserByDepart(departId int, currentUser models.User) ([]models.User, error) {
+	o := orm.NewOrm()
+	ok, err := new(DepartService).IsMyChildDepart(currentUser.Id, []int{departId}, true)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.New("no permission")
+	}
+	var user []models.User
+	_, err = o.Raw("select t2.* from user_depart t left join user t2 on t.user_id=t2.id where t.depart_id=?", departId).QueryRows(&user)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	return user, nil
 }
 
 func (this *UserService) ListUser(page int, length int, user models.User, currentUser models.User, rpcService *RpcService) ([]models.User, error) {
@@ -25,7 +47,6 @@ func (this *UserService) ListUser(page int, length int, user models.User, curren
 		qs = qs.Filter("user_name", user.UserName)
 	}
 	child, err := this.GetChildByUser(currentUser.Id, rpcService)
-	beego.Informational(child)
 	if err != nil {
 		return nil, err
 	}
@@ -45,11 +66,31 @@ func (this *UserService) Add(u models.User) (int, error) {
 	md5Ctx := md5.New()
 	md5Ctx.Write([]byte("123456"))
 	u.Pwd = hex.EncodeToString(md5Ctx.Sum(nil))
+	o.Begin()
 	id, err := o.Insert(&u)
 	if err != nil {
 		beego.Error(err)
+		o.Rollback()
 		return 0, err
 	}
+	if len(u.Avatar) > 0 {
+		path, filename, subfix := utils.ParsePathFile(u.Avatar)
+		path = strings.Replace(path, "/tmp", "/avatar", 1)
+		filename = strconv.Itoa(int(id))
+
+		if err2 := os.Rename(u.Avatar, path+filename+subfix); err2 != nil {
+			o.Rollback()
+			return 0, err2
+		}
+		u.Avatar = path + filename + subfix
+		_, err = o.Update(&u, "Avatar")
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return 0, err
+		}
+	}
+	o.Commit()
 	return int(id), nil
 }
 
@@ -62,7 +103,16 @@ func (this *UserService) Edit(u models.User, currentUser models.User, rpcService
 		return errors.New("not my child,no permission")
 	}
 	o := orm.NewOrm()
-	if _, err := o.Update(&u, "UserName", "Mobile", "Gender", "RealName", "IdentityCard"); err != nil {
+	if strings.Contains(u.Avatar, "/tmp") {
+		path, filename, subfix := utils.ParsePathFile(u.Avatar)
+		path = strings.Replace(path, "/tmp", "/avatar", 1)
+		filename = strconv.Itoa(u.Id)
+		if err2 := os.Rename(u.Avatar, path+filename+subfix); err2 != nil {
+			return err2
+		}
+		u.Avatar = path + filename + subfix
+	}
+	if _, err := o.Update(&u, "UserName", "Mobile", "Gender", "RealName", "IdentityCard", "Avatar"); err != nil {
 		beego.Error(err)
 		return err
 	}
@@ -215,10 +265,11 @@ func (this *UserService) AllotRes(userId int, resId []int, currentUser models.Us
 	if err2 != nil {
 		return err
 	}
-	for _, item := range myRes {
+	beego.Informational(myRes)
+	for _, item := range resId {
 		var isMyChild bool
-		for _, item2 := range resId {
-			if item.Id == item2 {
+		for _, item2 := range myRes {
+			if item == item2.Id {
 				isMyChild = true
 				break
 			}
@@ -437,9 +488,9 @@ func (this *UserService) IsMyChildUser(userId int, user []int, rpcService *RpcSe
 	if err != nil {
 		return false, err
 	}
-	for _, item := range myChild {
+	for _, item := range user {
 		var isMyChild bool
-		for _, item2 := range user {
+		for _, item2 := range myChild {
 			if item == item2 {
 				isMyChild = true
 				break

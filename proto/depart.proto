@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.rbac.depart";
+option java_outer_classname = "DepartProto";
+
+package proto;
+
+service Depart {
+	rpc GetAllChildDepartByUserId(User) returns(ChildDepart){}
+}
+
+message User{
+	int32 userId = 1;
+	bool withMe = 2;
+}
+
+message ChildDepart{
+	repeated int32 depart = 1;
+}

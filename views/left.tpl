@@ -6,11 +6,6 @@
     <a href="/role/toview"><el-menu-item index="1-3">role</el-menu-item></a>
     <a href="/resource/toview"><el-menu-item index="1-4">resource</el-menu-item></a>
     
-    
-    <el-submenu index="1-4">
-      <template slot="title">选项4</template>
-      <el-menu-item index="1-4-1">选项1</el-menu-item>
-    </el-submenu>
   </el-submenu>
   <el-submenu index="2">
     <template slot="title">system</template>

@@ -52,9 +52,24 @@ func (this *RpcService) GetResByRole(roleId int) ([]*models.Resource, error) {
 	if bm.IsExist("GetResByRole_" + strconv.Itoa(roleId)) {
 		return bm.Get("GetResByRole_" + strconv.Itoa(roleId)).([]*models.Resource), nil
 	}
-	o := orm.NewOrm()
 	var res []*models.Resource
-	_, err := o.Raw("select t2.* from role_res t left join resource t2 on t.res_id=t2.id where t.role_id=?", roleId).QueryRows(&res)
+	o := orm.NewOrm()
+	role := models.Role{Id: roleId}
+	err := o.Read(&role)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	if role.RoleName == "root" {
+		_, err = o.QueryTable("resource").All(&res)
+		if err != nil {
+			beego.Error(err)
+			return nil, err
+		}
+		return res, nil
+	}
+
+	_, err = o.Raw("select t2.* from role_res t left join resource t2 on t.res_id=t2.id where t.role_id=?", roleId).QueryRows(&res)
 	if err != nil {
 		beego.Informational(err)
 		return nil, err
@@ -273,7 +288,7 @@ func (this *RpcService) GetResByUser(userId int) (res []*models.Resource, err er
 	}
 
 	var userRes []*models.Resource
-	_, err = o.Raw("select t.* from resource t left join user_res t2 on t.id=t2.res_id where t2.user_id=?", userId).QueryRows(&userRes)
+	_, err = o.Raw("select t.* from resource t left join user_res t2 on t.id=t2.res_id where type=0 and t2.user_id=?", userId).QueryRows(&userRes)
 	if err != nil {
 		beego.Error(err)
 		return nil, err
@@ -298,7 +313,6 @@ func (this *RpcService) GetResByUser(userId int) (res []*models.Resource, err er
 			}
 		}
 	}
-
 	//sort,do-weight
 	for i := 0; i < len(res); i++ {
 		for j := i; j < len(res); j++ {

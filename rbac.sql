@@ -58,7 +58,7 @@ CREATE TABLE `depart_res` (
   `res_id` int(11) NOT NULL,
   `type` int(11) DEFAULT '0' COMMENT '0allow,1unallow',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,6 +67,7 @@ CREATE TABLE `depart_res` (
 
 LOCK TABLES `depart_res` WRITE;
 /*!40000 ALTER TABLE `depart_res` DISABLE KEYS */;
+INSERT INTO `depart_res` VALUES (2,12,29,0);
 /*!40000 ALTER TABLE `depart_res` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -213,7 +214,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'gsy',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','110','','gsy1',0,'','',NULL,NULL,NULL,'',NULL),(2,'gsy2',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','220','','gsy0',0,'','',NULL,NULL,NULL,'',NULL),(3,'gsy3',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','330','','gsy3',0,'','',NULL,NULL,NULL,'330',NULL),(4,'gsy4',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','440','','gsy4',0,'','',NULL,NULL,NULL,'440',NULL),(5,'gsy5',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','550','','gsy5',0,'','',NULL,NULL,NULL,'550',NULL),(7,'gsy7',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','770','','gsy7',0,'','',NULL,NULL,NULL,'770',NULL),(8,'gsy8',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','110','','gsy',0,'','',NULL,NULL,NULL,'',NULL),(9,'root',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','000','','root',0,'','',NULL,NULL,NULL,'000',NULL);
+INSERT INTO `user` VALUES (1,'gsy',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','110','','gsy1',0,'','',NULL,NULL,NULL,'','static/avatar/1.png'),(2,'gsy2',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','220','','gsy0',0,'','',NULL,NULL,NULL,'',NULL),(3,'gsy3',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','330','','gsy3',0,'','',NULL,NULL,NULL,'330',NULL),(4,'gsy4',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','440','','gsy4',0,'','',NULL,NULL,NULL,'440',NULL),(5,'gsy5',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','550','','gsy5',0,'','',NULL,NULL,NULL,'550',NULL),(7,'gsy7',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','770','','gsy7',0,'','',NULL,NULL,NULL,'770',NULL),(8,'gsy8',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','110','','gsy',0,'','',NULL,NULL,NULL,'',NULL),(9,'root',NULL,0,'','e10adc3949ba59abbe56e057f20f883e','000','','root',0,'','',NULL,NULL,NULL,'000',NULL);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -255,7 +256,7 @@ CREATE TABLE `user_res` (
   `res_id` int(11) NOT NULL DEFAULT '0',
   `type` int(11) DEFAULT '0' COMMENT '0allow,1unallow',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -264,7 +265,7 @@ CREATE TABLE `user_res` (
 
 LOCK TABLES `user_res` WRITE;
 /*!40000 ALTER TABLE `user_res` DISABLE KEYS */;
-INSERT INTO `user_res` VALUES (88,1,29,0),(89,1,35,0);
+INSERT INTO `user_res` VALUES (92,1,35,0);
 /*!40000 ALTER TABLE `user_res` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -303,4 +304,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-27  8:50:39
+-- Dump completed on 2017-11-02 10:44:19

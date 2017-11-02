@@ -15,6 +15,17 @@ type DepartService struct {
 	baseService
 }
 
+func (this *DepartService) GetDepartByRole(roleId int) ([]models.Depart, error) {
+	o := orm.NewOrm()
+	var depart []models.Depart
+	_, err := o.Raw("select t2.* from depart_role t left join depart t2 on t.depart_id=t2.id where t.role_id=?", roleId).QueryRows(&depart)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	return depart, nil
+}
+
 func (this *DepartService) ListDeparts(userId int, rpcService *RpcService) ([]*models.TreeBean, []*models.TreeBean, []*models.TreeBean, error) {
 	o := orm.NewOrm()
 	depart := make([]*models.Depart, 0, 10)
@@ -171,8 +182,8 @@ func (this *DepartService) ListDeparts(userId int, rpcService *RpcService) ([]*m
 	return tree, roleTree, resTree, nil
 }
 
-func (this *DepartService) Add(depart *models.Depart, currentUser models.User, rpcService *RpcService) (int, error) {
-	myDepartIds, err := this.GetAllChildDepartByUserId(currentUser.Id, rpcService, true)
+func (this *DepartService) Add(depart *models.Depart, currentUser models.User) (int, error) {
+	myDepartIds, err := this.GetAllChildDepartByUserId(currentUser.Id, true)
 	if err != nil {
 		beego.Error(err)
 		return 0, err
@@ -224,8 +235,8 @@ func (this *DepartService) Add(depart *models.Depart, currentUser models.User, r
 	return int(id), nil
 }
 
-func (this *DepartService) Edit(depart *models.Depart, currentUser models.User, rpcService *RpcService) error {
-	myDepartIds, err := this.GetAllChildDepartByUserId(currentUser.Id, rpcService, true)
+func (this *DepartService) Edit(depart *models.Depart, currentUser models.User) error {
+	myDepartIds, err := this.GetAllChildDepartByUserId(currentUser.Id, true)
 	if err != nil {
 		beego.Error(err)
 		return err
@@ -354,10 +365,10 @@ func (this *DepartService) AllotRes(departId int, resId []int, currentUser model
 	if err2 != nil {
 		return err
 	}
-	for _, item := range myRes {
+	for _, item := range resId {
 		var isMyChild bool
-		for _, item2 := range resId {
-			if item.Id == item2 {
+		for _, item2 := range myRes {
+			if item == item2.Id {
 				isMyChild = true
 				break
 			}
@@ -417,15 +428,14 @@ func (this *DepartService) AllotRes(departId int, resId []int, currentUser model
 }
 
 func (this *DepartService) IsMyChildDepart(userId int, departId []int, withMe bool) (bool, error) {
-	myDepartIds, err := this.GetAllChildDepartByUserId(userId, new(RpcService), withMe)
+	myDepartIds, err := this.GetAllChildDepartByUserId(userId, withMe)
 	if err != nil {
 		beego.Error(err)
 		return false, err
 	}
-	var isMyChild bool
-	for _, item := range *myDepartIds {
+	for _, item := range departId {
 		var isMyChild bool
-		for _, item2 := range departId {
+		for _, item2 := range *myDepartIds {
 			if item == item2 {
 				isMyChild = true
 				break
@@ -434,9 +444,6 @@ func (this *DepartService) IsMyChildDepart(userId int, departId []int, withMe bo
 		if !isMyChild {
 			return false, nil
 		}
-	}
-	if !isMyChild {
-		return false, nil
 	}
 	return true, nil
 }
@@ -451,10 +458,11 @@ func (this *DepartService) getDirectChild(parent *models.Depart, o orm.Ormer) ([
 	return child, nil
 }
 
-func (this *DepartService) GetAllChildDepartByUserId(userId int, rpcService *RpcService, withMe bool) (*[]int, error) {
+func (this *DepartService) GetAllChildDepartByUserId(userId int, withMe bool) (*[]int, error) {
 	if bm.IsExist("GetAllChildDepartByUserId" + strconv.Itoa(userId)) {
 		return bm.Get("GetAllChildDepartByUserId" + strconv.Itoa(userId)).(*[]int), nil
 	}
+	rpcService := new(RpcService)
 	var myDepartIds *[]int = new([]int)
 	myDepart, err := rpcService.GetDepartByUser(userId)
 	if err != nil {

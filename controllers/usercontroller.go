@@ -15,6 +15,21 @@ type UserController struct {
 	baseController
 }
 
+func (this *UserController) GetUserByDepart() {
+	currentUser := this.GetSession("user").(models.User)
+	departId, _ := this.GetInt("departId")
+	depart, err := this.service.GetUserByDepart(departId, currentUser)
+	result := new(models.BaseResponse)
+	if err != nil {
+		result.Msg = err.Error()
+	} else {
+		result.Code = 1
+		result.Data = depart
+	}
+	this.Data["json"] = result
+	this.ServeJSON()
+}
+
 func (this *UserController) ToView() {
 	rpcService := new(services.RpcService)
 	currentUser := this.GetSession("user").(models.User)
@@ -24,14 +39,12 @@ func (this *UserController) ToView() {
 	//		this.TplName = "login.tpl"
 	//		return
 	//	}
-	username := this.GetString("search_username")
-	user := models.User{UserName: username}
-	users, err := this.service.ListUser(1, 10, user, currentUser, rpcService)
+	users, err := this.service.ListUser(1, 10, models.User{}, currentUser, rpcService)
 	if err != nil {
 		beego.Error(err)
 	}
 	var count int
-	count, err = this.service.Count(user)
+	count, err = this.service.Count(models.User{})
 	depart, role, res, err2 := new(services.DepartService).ListDeparts(currentUser.Id, rpcService)
 	if err2 != nil {
 
@@ -42,11 +55,11 @@ func (this *UserController) ToView() {
 	this.Data["depart"] = depart
 	this.Data["role"] = role
 	this.Data["res"] = res
-	this.Data["search_username"] = username
+
 	this.TplName = "user.tpl"
 }
 
-func (this *UserController) Post() {
+func (this *UserController) Page() {
 	rpcService := new(services.RpcService)
 	currentUser := this.GetSession("user").(models.User)
 	//	ok, err2 := rpcService.HasRes(currentUser.Id, "user:detail")
@@ -59,14 +72,24 @@ func (this *UserController) Post() {
 	user := models.User{UserName: username}
 	page, _ := this.GetInt("currentPage")
 	pageSize, _ := this.GetInt("pageSize")
+	totalSize, _ := this.GetInt("totalSize")
 	result := new(models.BaseResponse)
 	users, err := this.service.ListUser(page, pageSize, user, currentUser, rpcService)
 	if err != nil {
-		beego.Error(err)
 		result.Msg = err.Error()
 	} else {
+		var count int
+		if totalSize == 0 {
+			count, err = this.service.Count(user)
+		}
 		result.Code = 1
-		result.Data = users
+		result.Data = struct {
+			Users []models.User
+			Count int
+		}{
+			Users: users,
+			Count: count,
+		}
 	}
 	this.Data["json"] = result
 	this.ServeJSON()

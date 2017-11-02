@@ -76,6 +76,7 @@ type User struct {
 	Email        string
 	RealName     string
 	IdentityCard string
+	Avatar       string
 	Status       int
 	Token        string
 	ClientId     string

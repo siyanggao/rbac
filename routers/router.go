@@ -16,6 +16,8 @@ func init() {
 	beego.AutoRouter(&controllers.RpcController{})
 	beego.AutoRouter(&controllers.DepartController{})
 	beego.AutoRouter(&controllers.UserController{})
+	beego.AutoRouter(&controllers.FormController{})
+
 	beego.InsertFilter("/*", beego.BeforeRouter, FilterLogin)
 	beego.InsertFilter("/resource/*", beego.BeforeRouter, FilterRoot)
 	beego.InsertFilter("/role/*", beego.BeforeRouter, FilterRoot)

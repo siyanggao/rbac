@@ -14,14 +14,14 @@
 		<el-table-column prop="UserName" label="userName" width="120"></el-table-column>
 		<el-table-column prop="Mobile" label="mobile" width="110"></el-table-column>
 		<el-table-column prop="Gender" label="gender" width="250"></el-table-column>
-		<el-table-column prop="RealName" label="realName" width="250"></el-table-column>
+		<el-table-column prop="RealName" label="realName" width="200"></el-table-column>
 		<el-table-column prop="IdentityCard" label="identityCard" width="250"></el-table-column>
 		<el-table-column prop="Avatar" label="avatar" width="150">
 			<template scope="scope"><a v-bind:href="scope.row.avatar">
-				<img v-bind:src="scope.row.Avatar" style="width:150px;height:80px"/>
+				<img v-bind:src="'/'+scope.row.Avatar" style="width:150px;height:80px"/>
 			</a></template>
 		</el-table-column>
-		<el-table-column label="operate" width="300">
+		<el-table-column label="operate" width="150">
 	      <template scope="scope">
 			<el-row>
 		        <el-button @click="handleEdit(scope.$index, scope.row)"  size="small" type="text">edit</el-button>
@@ -64,10 +64,10 @@
 	    
 	    <el-form-item label="image" :label-width="formLabelWidth">
 	    	<el-upload
-			  action="/upload"
+			  action="/form/post"
 			  list-type="picture-card"
 			  ref="upload"
-			  :file-list="form.fileList_image"
+			  :file-list="form.fileList"
 			  :multiple=false
 			  :on-success="handleUploadSuccess">
 			  <i class="el-icon-plus"></i>
@@ -158,12 +158,14 @@ var app = new Vue({
 			Mobile:'',
 			Email:'',
 			RealName:'',
+			Avatar:'',
 			Status:0,
 			IdentityCard:'',
 			index:0,
 			depart:[],
 			role:[],
-			res:[]
+			res:[],
+			fileList:[]
 		},
 		page:{
 			currentPage:1,
@@ -307,8 +309,8 @@ var app = new Vue({
 			this.form.RealName = row.RealName;
 			this.form.IdentityCard = row.IdentityCard;
 			this.form.index = index;
-	  		//this.form.upload_url = row.image_path;
-	  		//this.form.fileList_image = [{name:'name',url:row.image_path}];
+	  		this.form.Avatar = row.Avatar;
+	  		this.form.fileList = [{name:'name',url:"/"+row.Avatar}];
 	  	},
 	  	handleOk:function(){
 	  		if(this.form.Id==0) this.add();
@@ -366,34 +368,50 @@ var app = new Vue({
          			var obj=JSON.parse(JSON.stringify(this.form));//deep copy
 					this.tableData.splice(this.form.index,1,obj);
 	  			}else{
-	  				this.$message.error('edit failure');
+	  				this.$message.error(response.body.Msg);
 	  			}
 	  		});
 	  	},
 		handleSizeChange(val) {
   			this.page.pageSize = val;
-	  			this.$http.post('',this.page).then(response=>{
-	    			this.tableData = response.body;
+	  		this.$http.post('',this.page).then(response=>{
+	    			if(response.body.Code==1){
+					this.tableData = response.body.Data;
+				}else{
+					this.$message.error('get failure');
+				}
 	    		});
 	    },
 	    handleCurrentChange(val) {
 		    	this.page.currentPage = val;
 		    	this.$http.post('',this.page).then(response=>{
-	    			this.tableData = response.body;
-		    	});
-	    },
-	    search(){
-		    	this.page.currentPage = 1;
-		    	this.page.pageSize = 10;
-		    	this.$http.post('',this.page).then(response=>{
-				if(response.body.Code==1){
+	    			if(response.body.Code==1){
 					this.tableData = response.body.Data;
 				}else{
 					this.$message.error('get failure');
 				}
 		    	});
 	    },
-		handleUploadSuccess(){
+	    search(){
+		    	this.page.currentPage = 1;
+		    	this.page.pageSize = 10;
+			this.page.totalSize = 0;
+		    	this.$http.post('page',this.page).then(response=>{
+					if(response.body.Code==1){
+						this.tableData = response.body.Data.Users;
+						this.page.totalSize = response.body.Data.Count
+					}else{
+						this.$message.error('get failure');
+					}
+				})
+	    },
+		handleUploadSuccess(res, file){
+			if (res.Code==1){
+				this.form.Avatar = res.Data
+				
+			}else{
+				this.$message.error('upload failure');
+			}
 			
 		}
 	}
