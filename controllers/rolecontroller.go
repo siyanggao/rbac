@@ -16,8 +16,13 @@ type RoleController struct {
 }
 
 func (this *RoleController) ToView() {
-
-	tree, resTree, err := this.service.ListRoles(this.GetSession("user").(models.User).Id)
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err2 := rpcService.HasRole(currentUser.Id, "root")
+	if err2 != nil || !ok {
+		return
+	}
+	tree, resTree, err := this.service.ListRoles(currentUser.Id)
 	if err != nil {
 		beego.Error(err)
 
@@ -31,8 +36,17 @@ func (this *RoleController) ToView() {
 
 func (this *RoleController) Add() {
 	result := &models.BaseResponse{}
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
 	o := orm.NewOrm()
-	err := o.Begin()
+	err = o.Begin()
 	var role models.Role
 	role.RoleName = this.GetString("role_name")
 	role.Description = this.GetString("description")
@@ -71,12 +85,20 @@ func (this *RoleController) Add() {
 
 func (this *RoleController) Edit() {
 	result := &models.BaseResponse{}
-
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
 	var role models.Role
 	role.Id, _ = this.GetInt("id")
 	res := this.GetStrings("res[]")
 	o := orm.NewOrm()
-	err := o.Begin()
+	err = o.Begin()
 	if err != nil {
 		beego.Informational(err)
 		result.Msg = err.Error()
@@ -125,10 +147,19 @@ func (this *RoleController) Edit() {
 
 func (this *RoleController) Delete() {
 	result := new(models.BaseResponse)
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
 	role := new(models.Role)
 	role.Id, _ = this.GetInt("id")
 	o := orm.NewOrm()
-	err := o.Begin()
+	err = o.Begin()
 	err = o.Read(role)
 	if err != nil {
 		beego.Informational(err)
@@ -174,14 +205,29 @@ func (this *RoleController) Delete() {
 	this.ServeJSON()
 }
 
-//func (this *RoleController) findRoleIdByPid(pid int, role []*models.Role, ids []int) {
-//	for i := 0; i < len(role); i++ {
-//		if role[i].Pid == pid {
-//			ids = append(ids, role[i].Id)
-//			this.findRoleIdByPid(role[i].Id, role, ids)
-//		}
-//	}
-//}
+func (this *RoleController) GetAllChildRoleByUserId() {
+	result := new(models.BaseResponse)
+	currentUser := this.GetSession("user").(models.User)
+	withMe, _ := this.GetBool("withMe")
+	roleIds, err := this.service.GetAllChildRoleByUserId(currentUser.Id, new(services.RpcService), withMe)
+	if err != nil {
+		beego.Error(err)
+		result.Msg = err.Error()
+	} else {
+		o := orm.NewOrm()
+		var roles []*models.Role
+		_, err = o.QueryTable("role").Filter("id__in", roleIds).All(&roles)
+		if err != nil {
+			beego.Error(err)
+			result.Msg = err.Error()
+		} else {
+			result.Code = 1
+		}
+	}
+
+	this.Data["json"] = result
+	this.ServeJSON()
+}
 
 func (this *RoleController) toTree(role []*models.Role, tree *models.TreeBean) {
 	for i := 0; i < len(role); i++ {

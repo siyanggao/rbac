@@ -15,16 +15,16 @@ type DepartService struct {
 	baseService
 }
 
-func (this *DepartService) GetDepartByRole(roleId int) ([]models.Depart, error) {
-	o := orm.NewOrm()
-	var depart []models.Depart
-	_, err := o.Raw("select t2.* from depart_role t left join depart t2 on t.depart_id=t2.id where t.role_id=?", roleId).QueryRows(&depart)
-	if err != nil {
-		beego.Error(err)
-		return nil, err
-	}
-	return depart, nil
-}
+//func (this *DepartService) GetDepartByRole(roleId int) ([]models.Depart, error) {
+//	o := orm.NewOrm()
+//	var depart []models.Depart
+//	_, err := o.Raw("select t2.* from depart_role t left join depart t2 on t.depart_id=t2.id where t.role_id=?", roleId).QueryRows(&depart)
+//	if err != nil {
+//		beego.Error(err)
+//		return nil, err
+//	}
+//	return depart, nil
+//}
 
 func (this *DepartService) ListDeparts(userId int, rpcService *RpcService) ([]*models.TreeBean, []*models.TreeBean, []*models.TreeBean, error) {
 	o := orm.NewOrm()
@@ -546,6 +546,76 @@ func (this *DepartService) toTree(depart []*models.Depart, tree *models.TreeBean
 		}
 	}
 
+}
+
+func (this *DepartService) GetParents(userId int) ([]*models.Depart, error) {
+	rpcService := new(RpcService)
+	myDeparts, err := rpcService.GetDepartByUser(userId)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	var departs []*models.Depart
+	o := orm.NewOrm()
+	_, err = o.QueryTable("depart").All(&departs)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	var parents *[]*models.Depart = new([]*models.Depart)
+	for _, item := range myDeparts {
+		this.findDepartByChild(&item, departs, parents)
+	}
+	for index, item := range *parents {
+		if item.Pid == 0 {
+			//remove root
+			*parents = append((*parents)[:index], (*parents)[index+1:]...)
+		}
+	}
+	return *parents, nil
+}
+
+func (this *DepartService) findDepartByChild(depart *models.Depart, departs []*models.Depart, parents *[]*models.Depart) {
+	for i := 0; i < len(departs); i++ {
+		if departs[i].Id == depart.Pid {
+			*parents = append(*parents, departs[i])
+			this.findDepartByChild(departs[i], departs, parents)
+			break
+		}
+	}
+}
+
+func (this *DepartService) GetByRoleName(userId int, roleName string) ([]*models.Depart, error) {
+	parents, err := this.GetParents(userId)
+	if err != nil {
+		beego.Error(err)
+		return nil, err
+	}
+	childIds, err3 := this.GetAllChildDepartByUserId(userId, true)
+	if err3 != nil {
+		beego.Error(err3)
+		return nil, err3
+	}
+	var child []*models.Depart
+	o := orm.NewOrm()
+	o.QueryTable("depart").Filter("id__in", childIds).All(&child)
+	total := append(parents, child...)
+	rpcService := new(RpcService)
+	var departs []*models.Depart
+	for _, item := range total {
+		roles, err2 := rpcService.GetRoleByDepart(item.Id)
+		if err2 != nil {
+			beego.Error(err2)
+			continue
+		}
+		for _, item2 := range roles {
+			if item2.RoleName == roleName {
+				departs = append(departs, item)
+				break
+			}
+		}
+	}
+	return departs, nil
 }
 
 func (this *DepartService) findDepartIdByPid(pid int, depart []*models.Depart, ids *[]int) {

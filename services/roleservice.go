@@ -119,17 +119,13 @@ func (this *RoleService) IsMyChildRole(userId int, roleId []int, withMe bool) (b
 		return false, err
 	}
 	for _, item := range myRoleIds {
-		var isMyChild bool
 		for _, item2 := range roleId {
 			if item == item2 {
-				isMyChild = true
+				return true, nil
 			}
 		}
-		if !isMyChild {
-			return false, nil
-		}
 	}
-	return true, nil
+	return false, nil
 }
 
 func (this *RoleService) GetAllChildRoleByUserId(userId int, rpcService *RpcService, withMe bool) ([]int, error) {

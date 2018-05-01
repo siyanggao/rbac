@@ -13,19 +13,19 @@ type DepartController struct {
 	baseController
 }
 
-func (this *DepartController) GetDepartByRole() {
-	roleId, _ := this.GetInt("roleId")
-	depart, err := this.service.GetDepartByRole(roleId)
-	result := new(models.BaseResponse)
-	if err != nil {
-		result.Msg = err.Error()
-	} else {
-		result.Code = 1
-		result.Data = depart
-	}
-	this.Data["json"] = result
-	this.ServeJSON()
-}
+//func (this *DepartController) GetDepartByRole() {
+//	roleId, _ := this.GetInt("roleId")
+//	depart, err := this.service.GetDepartByRole(roleId)
+//	result := new(models.BaseResponse)
+//	if err != nil {
+//		result.Msg = err.Error()
+//	} else {
+//		result.Code = 1
+//		result.Data = depart
+//	}
+//	this.Data["json"] = result
+//	this.ServeJSON()
+//}
 
 func (this *DepartController) ToView() {
 	rpcService := new(services.RpcService)
@@ -180,6 +180,35 @@ func (this *DepartController) AllotRes() {
 		result.Msg = err.Error()
 	} else {
 		result.Code = 1
+	}
+	this.Data["json"] = result
+	this.ServeJSON()
+}
+
+func (this *DepartController) GetParents() {
+	result := new(models.BaseResponse)
+	currentUser := this.GetSession("user").(models.User)
+	parents, err := this.service.GetParents(currentUser.Id)
+	if err != nil {
+		result.Msg = err.Error()
+	} else {
+		result.Code = 1
+		result.Data = parents
+	}
+	this.Data["json"] = result
+	this.ServeJSON()
+}
+
+func (this *DepartController) GetByRoleName() {
+	result := new(models.BaseResponse)
+	currentUser := this.GetSession("user").(models.User)
+	roleName := this.GetString("roleName")
+	departs, err := this.service.GetByRoleName(currentUser.Id, roleName)
+	if err != nil {
+		result.Msg = err.Error()
+	} else {
+		result.Code = 1
+		result.Data = departs
 	}
 	this.Data["json"] = result
 	this.ServeJSON()

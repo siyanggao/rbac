@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"rbac/models"
+	"rbac/services"
 	"strconv"
 	"strings"
 	"time"
@@ -16,10 +16,16 @@ type ResourceController struct {
 }
 
 func (this *ResourceController) ToView() {
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		return
+	}
 	o := orm.NewOrm()
 	res := make([]*models.Resource, 100)
 	qs := o.QueryTable("resource")
-	_, err := qs.All(&res)
+	_, err = qs.All(&res)
 	if err != nil {
 		beego.Info(err)
 	}
@@ -43,13 +49,22 @@ func (this *ResourceController) ToView() {
 }
 
 func (this *ResourceController) Add() {
+	result := &models.BaseResponse{}
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
 	resName := this.GetString("res_name")
 	resCode := this.GetString("res_code")
 	pId, _ := this.GetInt("pid")
-	result := &models.BaseResponse{}
 	o := orm.NewOrm()
 	parentRes := models.Resource{Id: pId}
-	err := o.Read(&parentRes)
+	err = o.Read(&parentRes)
 	if err != nil {
 		result.Msg = err.Error()
 	} else {
@@ -71,13 +86,22 @@ func (this *ResourceController) Add() {
 }
 
 func (this *ResourceController) Edit() {
+	result := &models.BaseResponse{}
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
 	id, _ := this.GetInt("id")
 	resName := this.GetString("res_name")
 	resCode := this.GetString("res_code")
-	result := &models.BaseResponse{}
 	o := orm.NewOrm()
 	res := models.Resource{Id: id}
-	err := o.Read(&res)
+	err = o.Read(&res)
 	if err != nil {
 		result.Msg = err.Error()
 	} else {
@@ -98,13 +122,21 @@ func (this *ResourceController) Edit() {
 }
 
 func (this *ResourceController) Delete() {
-	id, _ := this.GetInt("id")
-	fmt.Println(this.Ctx.Input.Param(":id"))
 	result := &models.BaseResponse{}
+	currentUser := this.GetSession("user").(models.User)
+	rpcService := new(services.RpcService)
+	ok, err := rpcService.HasRole(currentUser.Id, "root")
+	if err != nil || !ok {
+		result.Msg = "no permission"
+		this.Data["json"] = result
+		this.ServeJSON()
+		return
+	}
+	id, _ := this.GetInt("id")
 	o := orm.NewOrm()
 	res := make([]*models.Resource, 0)
 	qs := o.QueryTable("resource")
-	_, err := qs.All(&res)
+	_, err = qs.All(&res)
 	if err != nil {
 		beego.Informational(err)
 		result.Msg = err.Error()
