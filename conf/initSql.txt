@@ -1,0 +1,12 @@
+/*insert user */;
+INSERT INTO `user`(`id`, `user_name`, `birth`, `gender`, `addr`, `pwd`, `mobile`, `email`, `real_name`, `status`, `token`, `client_id`, `last_login_time`, `gmt_create`, `gmt_modified`, `identity_card`, `avatar`) VALUES (1, 'root', NULL, 0, '', 'e10adc3949ba59abbe56e057f20f883e', '000', '', 'root', 0, '', '', NULL, NULL, NULL, '000', NULL);
+/*insert role */;
+INSERT INTO `role`(`id`, `role_name`, `description`, `pid`, `gmt_create`, `gmt_modified`) VALUES (1, 'root', 'root', 0, NULL, '2018-04-01 03:33:14');
+/*insert dept */;
+INSERT INTO `depart`(`id`, `name`, `pid`, `code`, `level`, `pids`, `gmt_create`, `gmt_modified`) VALUES (1, 'root', 0, '0', 0, NULL, NULL, NULL);
+/*insert resource */;
+INSERT INTO `rbac`.`resource`(`id`, `res_name`, `res_code`, `pid`, `gmt_create`, `gmt_modified`) VALUES (1, 'root', 'root', 0, '2017-10-10 00:00:00', '2017-10-10 00:00:00');
+/*insert user_depart */;
+INSERT INTO `rbac`.`user_depart`(`id`, `user_id`, `depart_id`) VALUES (1, 1, 1);
+/*insert depart_role */;
+INSERT INTO `rbac`.`depart_role`(`id`, `depart_id`, `role_id`) VALUES (1, 1, 1);

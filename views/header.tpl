@@ -5,9 +5,9 @@
 <title>Test</title>
 <link href="https://cdn.bootcss.com/element-ui/2.0.0-alpha.2/theme-chalk/index.css" rel="stylesheet">
 <link href="/static/css/style.css" rel="stylesheet">
-<script src="/static/js/vue.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.js"></script>
 <script src="/static/js/vue-resource@1.3.4.js"></script>
-<script src="https://cdn.bootcss.com/element-ui/2.0.0-alpha.2/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/element-ui/2.4.9/index.js"></script>
 <script>
 	Vue.http.options.emulateJSON = true;
 	Vue.http.options.headers = {
